@@ -125,6 +125,13 @@
             opacity: 1;
         }
 
+        /* Enlarge the emoji icon within the button */
+        .calculate-btn .emoji {
+            font-size: 1.8em; /* Significantly larger than parent font-size */
+            vertical-align: middle; /* Align with text */
+            margin-left: 8px; /* Add some spacing */
+        }
+
         .results-section {
             opacity: 0;
             transform: scale(0.5);
@@ -511,35 +518,39 @@
             /**
              * Animates the progress bar fill and updates the percentage text.
              * @param {number} finalPercentage - The target percentage to animate to.
+             * @returns {Promise<void>} A promise that resolves when the animation is complete.
              */
             function animateProgressBar(finalPercentage) {
-                progressBarFill.style.width = '0%';
-                percentageText.textContent = '0%';
-                resultsSection.setAttribute('aria-valuenow', '0');
+                return new Promise(resolve => {
+                    progressBarFill.style.width = '0%';
+                    percentageText.textContent = '0%';
+                    resultsSection.setAttribute('aria-valuenow', '0');
 
-                let current = 0;
-                const duration = 1500; // milliseconds
-                const startTime = performance.now();
+                    let current = 0;
+                    const duration = 1500; // milliseconds
+                    const startTime = performance.now();
 
-                function update() {
-                    const elapsed = performance.now() - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    current = Math.floor(progress * finalPercentage);
+                    function update() {
+                        const elapsed = performance.now() - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        current = Math.floor(progress * finalPercentage);
 
-                    progressBarFill.style.width = `${current}%`;
-                    percentageText.textContent = `${current}%`;
-                    resultsSection.setAttribute('aria-valuenow', current.toString());
+                        progressBarFill.style.width = `${current}%`;
+                        percentageText.textContent = `${current}%`;
+                        resultsSection.setAttribute('aria-valuenow', current.toString());
 
-                    if (progress < 1) {
-                        requestAnimationFrame(update);
-                    } else {
-                        // Ensure it hits the exact final value
-                        progressBarFill.style.width = `${finalPercentage}%`;
-                        percentageText.textContent = `${finalPercentage}%`;
-                        resultsSection.setAttribute('aria-valuenow', finalPercentage.toString());
+                        if (progress < 1) {
+                            requestAnimationFrame(update);
+                        } else {
+                            // Ensure it hits the exact final value
+                            progressBarFill.style.width = `${finalPercentage}%`;
+                            percentageText.textContent = `${finalPercentage}%`;
+                            resultsSection.setAttribute('aria-valuenow', finalPercentage.toString());
+                            resolve(); // Resolve the promise when animation is complete
+                        }
                     }
-                }
-                requestAnimationFrame(update);
+                    requestAnimationFrame(update);
+                });
             }
 
             /**
@@ -575,14 +586,14 @@
              * @param {number} percentage - The calculated love percentage.
              * @param {string} quote - The romantic quote.
              */
-            function displayResults(percentage, quote) {
+            async function displayResults(percentage, quote) {
                 resultsSection.classList.add('hidden'); // Hide temporarily for animation reset
                 // Force reflow to reset transition (modern browsers might optimize this away)
                 void resultsSection.offsetWidth;
                 resultsSection.classList.remove('hidden');
                 resultsSection.classList.add('show');
 
-                animateProgressBar(percentage);
+                await animateProgressBar(percentage); // Wait for the animation to complete
                 loveQuote.textContent = quote;
                 currentCalculatedPercentage = percentage; // Store for sharing
                 burstConfetti(percentage);
