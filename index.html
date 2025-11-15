@@ -231,14 +231,13 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.6);
             z-index: 1; /* On top of fill */
             white-space: nowrap;
-            transform: rotate(45deg); /* Counter-rotate again for the number */
+            /* REMOVED: transform: rotate(45deg); */
         }
 
 
         .love-quote {
             font-family: 'Dancing Script', cursive;
             font-size: 1.8em;
-            font-style: italic;
             color: var(--neutral-white);
             margin-top: 20px;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
@@ -354,23 +353,31 @@
                 justify-content: center;
             }
             input[type="text"] {
-                width: 180px; /* Specific width for desktop inputs */
+                width: 180px; /* Specific width for medium screens */
             }
         }
         @media (min-width: 768px) {
             .container {
-                max-width: 600px;
+                max-width: 750px; /* Increased width to give more space for button */
                 padding: 40px;
             }
             .title {
                 font-size: 3.5em;
             }
             .input-section {
-                flex-wrap: nowrap;
+                flex-wrap: nowrap; /* Keep on one line for desktop */
                 gap: 20px;
+                justify-content: center; /* Center items within the section */
+                align-items: center; /* Vertically align items */
             }
             input[type="text"] {
-                width: 200px;
+                flex-grow: 1; /* Allow inputs to grow */
+                max-width: 200px; /* Cap input width */
+                width: auto; /* Let flex control width */
+            }
+            .calculate-btn {
+                flex-shrink: 0; /* Prevent button from shrinking */
+                min-width: 150px; /* Ensure button has minimum width */
             }
              .recent-calculations-sidebar.show-sidebar {
                 transform: translateX(0); /* Always show sidebar on desktop */
@@ -494,7 +501,7 @@
                 const MID_TIER_QUOTES = [
                     "Love is definitely in the air for you two! 💘",
                     "You two are like two peas in a very romantic pod! 🥰",
-                    "More compatible than coffee and a sunrise! ☕️☀️",
+                    "Your bond is as comforting as a warm cup on a chilly morning! ☕️❤️", /* Updated quote */
                     "Your love story is just getting started! 📖💖",
                     "Together, you create a perfect symphony of affection! 🎶❤️"
                 ];
@@ -732,7 +739,7 @@
                                 const li = document.createElement('li');
                                 li.innerHTML = `<strong>${calc.name1}</strong> & <strong>${calc.name2}</strong><br>
                                                 Love Score: <span style="color:var(--secondary-red); font-weight:bold;">${calc.percentage}%</span><br>
-                                                <span style="font-size:0.8em; opacity:0.8;">"${calc.quote}"</span>`;
+                                                <span style="font-size:0.8em; opacity:0.8; font-style: italic;">"${calc.quote}"</span>`;
                                 recentList.appendChild(li);
                             });
                         }
