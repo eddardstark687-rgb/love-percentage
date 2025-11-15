@@ -1,11 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Love Meter: Spark Your Fate? 💘</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="description" content="A whimsical love compatibility calculator that gives a fun percentage and a cheesy romantic quote, with a retro Valentine's Day aesthetic.">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Charm:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             /* Color Palette */
@@ -96,296 +96,334 @@
             position: relative;
             overflow: hidden;
             margin-top: 10px;
+            width: 100%;
         }
 
-        .calculate-btn:hover:not(:disabled), .reset-btn:hover:not(:disabled), .share-btn:hover:not(:disabled) {
+        .calculate-btn:hover, .reset-btn:hover, .share-btn:hover {
             transform: scale(1.05);
-            background-color: var(--secondary-red);
-            color: var(--neutral-white);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .calculate-btn:disabled, .reset-btn:disabled, .share-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: scale(1);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        .calculate-btn:active, .reset-btn:active, .share-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
         }
 
-        .calculate-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: radial-gradient(circle, rgba(255, 192, 203, 0.7) 0%, rgba(220, 20, 60, 0) 70%); /* Red to pink glow */
-            transform: translate(-50%, -50%);
-            transition: width 0.4s ease, height 0.4s ease;
-            opacity: 0;
-            border-radius: 50%;
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap; /* Allows buttons to wrap on smaller screens */
         }
 
-        .calculate-btn:hover::before {
-            width: 300px;
-            height: 300px;
-            opacity: 1;
+        .button-group > button {
+            flex: 1;
+            min-width: 150px; /* Ensure buttons are not too small */
         }
 
-        /* Enlarge the emoji icon within the button */
-        .calculate-btn .emoji {
-            font-size: 2.0em; /* Significantly larger than parent font-size */
-            vertical-align: middle; /* Align with text */
-            margin-left: 8px; /* Add some spacing */
-        }
-
+        /* Results Section */
         .results-section {
             opacity: 0;
             transform: scale(0.5);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            transition: all 0.5s ease-out;
             margin-top: 30px;
+            display: none; /* Hidden by default, shown with JS */
         }
 
         .results-section.show {
             opacity: 1;
             transform: scale(1);
+            display: block;
         }
 
-        .heart-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        /* Heart outline using pseudo-elements */
-        .heart-outline {
-            width: 200px;
-            height: 180px;
-            background: linear-gradient(45deg, var(--primary-pink), var(--secondary-red));
+        /* NEW METER STYLES */
+        .love-meter-display {
             position: relative;
-            transform: rotate(-45deg);
-            border-radius: 25px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 280px; /* Slightly wider to accommodate labels */
+            height: 250px; /* Height to accommodate meter + text + labels */
+            margin: 40px auto 20px auto;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            border: 3px solid var(--neutral-white);
         }
 
-        .heart-outline::before,
-        .heart-outline::after {
-            content: "";
-            width: 100px;
-            height: 100px;
-            background: inherit;
-            border-radius: 50%;
-            position: absolute;
-            box-shadow: inherit;
-            border: inherit;
-        }
-
-        .heart-outline::before {
-            top: -50px;
-            left: 50px;
-        }
-
-        .heart-outline::after {
-            top: 50px;
-            right: -50px;
-        }
-
-        .love-progress-bar {
+        .meter-gauge-container { /* New wrapper for meter gauge elements */
             position: relative;
-            width: 120px;
-            height: 25px;
-            background-color: rgba(255, 255, 255, 0.5);
-            border-radius: 15px;
-            overflow: hidden;
-            transform: rotate(45deg); /* Counter-rotate to appear straight */
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
-            display: flex; /* For centering text */
-            align-items: center; /* For centering text */
-            justify-content: center; /* For centering text */
+            width: 250px;
+            height: 125px; /* Half of width for semicircle */
+            margin-top: 20px; /* Space from top of love-meter-display */
         }
 
-        .love-progress-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(to right, var(--blush-pink), var(--secondary-red));
-            transition: width 1.5s ease-out;
-            border-radius: 15px;
-            position: absolute;
-            left: 0;
+        .meter-gauge {
+            position: absolute; /* Position within meter-gauge-container */
             top: 0;
-            z-index: 0; /* Behind text */
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 125px 125px 0 0; /* Top half is round */
+            background-color: var(--blush-pink); /* Background for empty track */
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            border: 5px solid var(--primary-pink); /* Outer border for the gauge */
+            z-index: 1; /* Below needle, above nothing */
         }
 
-        .percentage-text {
-            /* Keep centered inside love-progress-bar */
-            position: relative;
-            font-family: sans-serif;
-            font-size: 2em;
+        /* Inner track for a more refined look, slightly inset */
+        .meter-track-inner {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: calc(100% - 20px);
+            height: calc(100% - 10px); /* Adjust height so it's a semicircle with top padding */
+            border-radius: 115px 115px 0 0; /* Smaller radius for inner track */
+            background: linear-gradient(to right, #ffffff80, #ffffff20); /* Subtle gradient for the track */
+        }
+
+        .meter-center-pivot {
+            position: absolute;
+            bottom: 0; /* Aligns to the flat bottom edge of the meter-gauge */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 25px;
+            height: 25px;
+            background-color: var(--secondary-red);
+            border: 4px solid var(--neutral-white);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            z-index: 3;
+        }
+
+        .meter-needle {
+            position: absolute;
+            bottom: 0; /* Start at the base of the container */
+            left: 50%;
+            width: 6px;
+            height: 110px; /* Length of the needle, extending slightly into the pivot */
+            background-color: var(--deep-red);
+            border-radius: 3px;
+            transform-origin: 50% 100%; /* Pivot point is the bottom of the needle */
+            transform: translateX(-50%) rotate(-90deg); /* Initial position: 0% at far left */
+            transition: transform 1.5s ease-out;
+            z-index: 2;
+        }
+
+        .meter-labels {
+            position: absolute;
+            bottom: 110px; /* Position them around the meter-gauge */
+            width: 100%; /* Relative to love-meter-display */
+            height: 125px; /* Same height as meter-gauge */
+            font-size: 0.9em;
             font-weight: bold;
-            color: var(--neutral-white);
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.6);
-            z-index: 1; /* On top of fill */
-            white-space: nowrap;
-            /* REMOVED: transform: rotate(45deg); */
+            color: var(--secondary-red);
+            pointer-events: none;
+            z-index: 4; /* Above meter-gauge elements */
+        }
+        .meter-labels span {
+            position: absolute;
+            top: auto;
+            bottom: 0; /* Align to the bottom of the labels container */
+            transform: translateY(50%); /* Adjust to center vertically on the base line */
+        }
+        .meter-labels .label-0 {
+            left: 0;
+            transform: translateX(-50%) translateY(50%); /* Offset for centering */
+        }
+        .meter-labels .label-50 {
+            left: 50%;
+            transform: translateX(-50%) translateY(50%);
+        }
+        .meter-labels .label-100 {
+            right: 0;
+            transform: translateX(50%) translateY(50%); /* Offset for centering */
         }
 
+        .result-percentage-text {
+            position: relative; /* Relative to .love-meter-display */
+            margin-top: 15px; /* Space between labels and text */
+            color: var(--neutral-white);
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5em;
+            font-weight: 700;
+            text-shadow:
+                0 0 10px var(--primary-pink),
+                0 0 20px var(--primary-pink),
+                0 0 30px var(--secondary-red),
+                0 0 40px var(--secondary-red),
+                3px 3px 5px rgba(0, 0, 0, 0.5);
+            letter-spacing: 2px;
+            white-space: nowrap;
+            z-index: 5; /* Highest z-index */
+        }
 
         .love-quote {
-            font-family: 'Dancing Script', cursive;
-            font-size: 1.8em;
-            color: var(--neutral-white);
+            font-family: 'Charm', cursive;
+            font-style: italic;
+            font-size: 1.5em;
+            color: var(--deep-red);
             margin-top: 20px;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+            padding: 0 10px;
         }
 
-        .reset-btn, .share-btn {
-            margin-top: 20px;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* Floating Hearts Animation */
-        @keyframes floatHeart {
-            0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
-            50% { opacity: 0.7; }
-            100% { transform: translateY(-100vh) rotate(360deg) scale(1.2); opacity: 0; }
-        }
-
+        /* Floating Hearts */
         .floating-heart {
             position: absolute;
-            bottom: -50px;
-            font-size: 2em;
-            pointer-events: none;
-            animation: floatHeart linear infinite;
-            z-index: 1;
-        }
-
-        .floating-heart.red { color: #FF0000; } /* Pure red */
-        .floating-heart.pink { color: #FF69B4; } /* Hot pink */
-        .floating-heart.white { color: var(--neutral-white); filter: drop-shadow(0 0 3px rgba(0,0,0,0.3)); }
-
-        /* Confetti/Emojis for high scores */
-        .confetti-item {
-            position: absolute;
-            font-size: 1.5em;
-            pointer-events: none;
-            animation: confetti-fall 2s ease-out forwards;
-            opacity: 0;
-            z-index: 20;
-        }
-
-        @keyframes confetti-fall {
-            0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-            100% { transform: translate(var(--x), var(--y)) rotate(var(--deg)); opacity: 0; }
-        }
-
-        /* Recent Calculations Sidebar */
-        .recent-calculations-sidebar {
-            position: fixed;
-            right: 0;
-            top: 0;
-            height: 100vh;
-            width: 250px;
-            background-color: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
-            border-left: 1px solid rgba(255, 255, 255, 0.5);
-            padding: 20px;
-            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
-            color: var(--neutral-white);
-            z-index: 5;
-            overflow-y: auto;
-            transform: translateX(100%); /* Start hidden on mobile */
-            transition: transform 0.3s ease-out;
-        }
-
-        .recent-calculations-sidebar.show-sidebar {
-            transform: translateX(0); /* Always show sidebar on desktop */
-        }
-
-        .recent-calculations-sidebar h2 {
-            font-family: 'Dancing Script', cursive;
-            font-size: 2em;
+            font-size: 1.5em; /* Small hearts */
             color: var(--secondary-red);
-            margin-bottom: 20px;
+            bottom: -20px; /* Start below the screen */
+            animation: floatUp ease-out forwards; /* forwards to keep last state */
+            pointer-events: none; /* Do not interfere with clicks */
+            z-index: 1; /* Below the main container */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 0;
+            }
+            20% {
+                opacity: var(--initial-opacity);
+            }
+            100% {
+                transform: translateY(-120vh) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* Burst Hearts for high scores */
+        .burst-heart {
+            position: absolute;
+            font-size: 2em;
+            color: var(--deep-red);
+            animation: burst 1s ease-out forwards;
+            pointer-events: none;
+            z-index: 100;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+
+        @keyframes burst {
+            0% {
+                transform: scale(0) translate(0, 0);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2) translate(var(--offset-x), var(--offset-y));
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(0.5) translate(var(--offset-x), var(--offset-y));
+                opacity: 0;
+            }
+        }
+
+        /* History Section */
+        .history-section {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            text-align: left;
+            color: var(--neutral-white);
+            font-size: 0.9em;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 10px;
+            max-width: 180px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .history-section h3 {
+            font-family: 'Charm', cursive;
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--primary-pink);
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
         }
 
-        .recent-calculations-sidebar ul {
+        .history-section ul {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
 
-        .recent-calculations-sidebar li {
-            background-color: rgba(255, 255, 255, 0.15);
-            border: 1px solid var(--primary-pink);
-            border-radius: 8px;
-            margin-bottom: 10px;
-            padding: 10px;
-            text-align: left;
-            font-size: 0.9em;
-            line-height: 1.4;
-            color: #FFFCFC;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        .history-section li {
+            margin-bottom: 5px;
+            color: var(--neutral-white);
         }
 
-        .recent-calculations-sidebar li strong {
+        .history-section li span {
+            font-weight: bold;
             color: var(--secondary-red);
         }
 
-        .loading-message {
-            font-style: italic;
-            opacity: 0.7;
-            margin-top: 10px;
-        }
-
-        /* Responsive Design */
-        @media (min-width: 400px) {
-            .input-section {
-                flex-direction: row;
-                flex-wrap: wrap; /* Allow wrapping on medium screens */
-                justify-content: center;
-            }
-            input[type="text"] {
-                width: 180px; /* Specific width for medium screens */
-            }
-        }
-        @media (min-width: 768px) {
-            .container {
-                max-width: 750px; /* Increased width to give more space for button */
-                padding: 40px;
-            }
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
             .title {
-                font-size: 3.5em;
+                font-size: 2.5em;
             }
-            .input-section {
-                flex-wrap: nowrap; /* Keep on one line for desktop */
-                gap: 20px;
-                justify-content: center; /* Center items within the section */
-                align-items: center; /* Vertically align items */
+            .container {
+                padding: 20px;
             }
             input[type="text"] {
-                flex-grow: 1; /* Allow inputs to grow */
-                max-width: 200px; /* Cap input width */
-                width: auto; /* Let flex control width */
+                padding: 12px;
+                font-size: 1em;
             }
-            .calculate-btn {
-                flex-shrink: 0; /* Prevent button from shrinking */
-                min-width: 150px; /* Ensure button has minimum width */
+            .calculate-btn, .reset-btn, .share-btn {
+                padding: 12px 20px;
+                font-size: 1.1em;
             }
-             .recent-calculations-sidebar.show-sidebar {
-                transform: translateX(0); /* Always show sidebar on desktop */
+            .button-group > button {
+                flex-basis: 100%; /* Stack buttons on very small screens */
+                min-width: unset;
             }
-            body {
-                /* Adjust main container's position to visually center it while sidebar is visible */
-                padding-right: 250px; /* Space for sidebar */
-                justify-content: center; /* Center main content in remaining space */
+
+            /* Responsive Meter Styles */
+            .love-meter-display {
+                width: 220px;
+                height: 200px;
+            }
+            .meter-gauge-container {
+                width: 200px;
+                height: 100px;
+            }
+            .meter-gauge {
+                border-radius: 100px 100px 0 0;
+            }
+            .meter-track-inner {
+                border-radius: 90px 90px 0 0;
+            }
+            .meter-needle {
+                height: 90px;
+            }
+            .meter-center-pivot {
+                width: 20px;
+                height: 20px;
+            }
+            .meter-labels {
+                font-size: 0.8em;
+                bottom: 90px;
+                height: 100px;
+            }
+            .result-percentage-text {
+                font-size: 2.5em;
+                margin-top: 10px;
+            }
+
+            .love-quote {
+                font-size: 1.2em;
+            }
+            .history-section {
+                position: relative;
+                bottom: unset;
+                left: unset;
+                margin-top: 20px;
+                max-width: unset;
+                width: 100%;
+                text-align: center;
+                box-sizing: border-box;
             }
         }
     </style>
@@ -395,460 +433,279 @@
         <h1 class="title">Love Meter: Spark Your Fate? 💘</h1>
 
         <div class="input-section">
-            <input type="text" id="name1" placeholder="Person 1's Name" aria-label="Person 1's Name" required>
-            <input type="text" id="name2" placeholder="Person 2's Name" aria-label="Person 2's Name" required>
-            <button id="calculateBtn" class="calculate-btn">Calculate Love <span class="emoji">💕</span></button>
+            <input type="text" id="person1Name" placeholder="Person 1's Name" aria-label="Person 1's Name">
+            <input type="text" id="person2Name" placeholder="Person 2's Name" aria-label="Person 2's Name">
+            <button class="calculate-btn" id="calculateButton" aria-label="Calculate Love">Calculate Love 💕</button>
         </div>
 
-        <div id="results" class="results-section hidden" role="region" aria-live="polite">
-            <div class="heart-container">
-                <div class="heart-outline">
-                    <div class="love-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                        <div id="progressBarFill" class="love-progress-fill"></div>
-                        <span id="percentageText" class="percentage-text">0%</span>
+        <div class="results-section" id="resultsSection">
+            <div class="love-meter-display">
+                <div class="meter-gauge-container">
+                    <div class="meter-gauge">
+                        <div class="meter-track-inner"></div>
                     </div>
+                    <div class="meter-center-pivot" id="meterCenterPivot"></div>
+                    <div class="meter-needle" id="meterNeedle"></div>
                 </div>
+                <div class="meter-labels">
+                    <span class="label-0">0%</span>
+                    <span class="label-50">50%</span>
+                    <span class="label-100">100%</span>
+                </div>
+                <div class="result-percentage-text" id="resultPercentageText"></div>
             </div>
-            <p id="loveQuote" class="love-quote"></p>
-            <div id="confettiContainer" class="confetti-container"></div>
-            <button id="resetBtn" class="reset-btn">Try Another Pair</button>
-            <button id="shareBtn" class="share-btn">Share Your Score! <span class="emoji">💌</span></button>
+            <p class="love-quote" id="quoteText"></p>
+            <div class="button-group">
+                <button class="reset-btn" id="resetButton" aria-label="Try Another Pair">Try Another Pair</button>
+                <button class="share-btn" id="shareButton" aria-label="Share your score!">Share your score!</button>
+            </div>
         </div>
-    </div>
 
-    <div id="recentCalculationsSidebar" class="recent-calculations-sidebar">
-        <h2>Recent Sparks</h2>
-        <ul id="recentList">
-            <!-- Recent calculations will be inserted here by JavaScript -->
-        </ul>
-        <p id="recentLoadingMessage" class="loading-message hidden">Loading recent sparks...</p>
+        <div class="history-section" id="historyContainer">
+            <h3>Recent Sparks ✨</h3>
+            <ul id="historyList">
+                <!-- History items will be inserted here -->
+            </ul>
+        </div>
     </div>
 
     <script>
-        // LoveMeterAPI: A simulated backend API for storing and retrieving calculations.
-        const LoveMeterAPI = (() => {
-            let _database = []; // In-memory database
-            const _latency = 700; // Simulate network latency in milliseconds
+        const person1NameInput = document.getElementById('person1Name');
+        const person2NameInput = document.getElementById('person2Name');
+        const calculateButton = document.getElementById('calculateButton');
+        const resultsSection = document.getElementById('resultsSection');
+        // const heartProgressBar = document.getElementById('heartProgressBar'); // Removed
+        // const progressBarFill = document.getElementById('progressBarFill');     // Removed
+        const meterNeedle = document.getElementById('meterNeedle'); // New meter element
+        const meterCenterPivot = document.getElementById('meterCenterPivot'); // For burst hearts origin
+        const resultPercentageText = document.getElementById('resultPercentageText');
+        const quoteText = document.getElementById('quoteText');
+        const resetButton = document.getElementById('resetButton');
+        const shareButton = document.getElementById('shareButton');
+        const historyList = document.getElementById('historyList');
 
-            /**
-             * Simulates an asynchronous API call with a delay.
-             * @param {*} data - The data to return.
-             * @returns {Promise<*>} A promise that resolves with the data after a delay.
-             */
-            async function _simulateAPI(data) {
-                return new Promise(resolve => setTimeout(() => resolve(data), _latency));
+        const loveQuotes = [
+            "Your hearts sync like WiFi signals! 💖",
+            "A match made in the stars, or perhaps just a very good algorithm! ✨",
+            "This connection is stronger than our coffee this morning! ☕❤️",
+            "You two are like two peas in a very romantic pod! 🌱💕",
+            "Love is in the air, and it smells like... you two! 🌬️💘",
+            "Together, you're a supernova of affection! 💥",
+            "You're the missing piece in each other's romantic puzzle! 🧩❤️",
+            "Like a perfect duet, your souls sing in harmony! 🎶",
+            "Your love story is just getting its adorable beginning! 📖💖",
+            "Warning: Cuteness overload when you're together! 🥰"
+        ];
+
+        function calculateLovePercentage(name1, name2) {
+            const cleanName1 = name1.toLowerCase().replace(/\s/g, '');
+            const cleanName2 = name2.toLowerCase().replace(/\s/g, '');
+
+            let customQuote = null;
+
+            // Easter Egg
+            if ((cleanName1 === 'grok' && cleanName2 === 'xai') || (cleanName1 === 'xai' && cleanName2 === 'grok')) {
+                customQuote = "AI-approved soulmates! 🚀❤️";
+                return { percentage: 100, customQuote: customQuote };
             }
 
-            return {
-                /**
-                 * Simulates saving a love calculation record to the database.
-                 * @param {{name1: string, name2: string, percentage: number, quote: string}} calculationData - The data to save.
-                 * @returns {Promise<{success: boolean, record?: object, error?: string}>} A promise resolving with the API response.
-                 */
-                async saveCalculation(calculationData) {
-                    try {
-                        const newId = _database.length + 1;
-                        const record = { id: newId, ...calculationData, timestamp: new Date().toISOString() };
-                        _database.unshift(record); // Add to the beginning, like recent
-                        // Keep only a reasonable number of entries in the simulated DB
-                        if (_database.length > 10) {
-                            _database = _database.slice(0, 10);
-                        }
-                        console.log("Simulated DB: Saved record", record);
-                        return await _simulateAPI({ success: true, record });
-                    } catch (error) {
-                        console.error("Simulated DB: Failed to save calculation:", error);
-                        return await _simulateAPI({ success: false, error: "Simulated DB error saving calculation." });
-                    }
-                },
-
-                /**
-                 * Simulates fetching recent love calculation records from the database.
-                 * @param {number} limit - The maximum number of recent records to retrieve.
-                 * @returns {Promise<{success: boolean, data?: object[], error?: string}>} A promise resolving with the API response.
-                 */
-                async getRecentCalculations(limit = 3) {
-                    try {
-                        console.log("Simulated DB: Fetching recent records (limit", limit, ")");
-                        // Return a copy to prevent external modification and slice for the limit
-                        const recent = [..._database].slice(0, limit);
-                        return await _simulateAPI({ success: true, data: recent });
-                    } catch (error) {
-                        console.error("Simulated DB: Failed to fetch recent calculations:", error);
-                        return await _simulateAPI({ success: false, error: "Simulated DB error fetching calculations." });
-                    }
-                }
-            };
-        })();
-
-
-        // LoveMeterService: Encapsulates the core love calculation and quote generation logic.
-        const LoveMeterService = (() => {
-            /**
-             * Generates a weighted love quote based on the score.
-             * @param {number} score - The calculated love score (0-100).
-             * @returns {string} A romantic quote.
-             */
-            function _generateWeightedQuote(score) {
-                const LOW_TIER_QUOTES = [
-                    "Just getting started, sparks could fly! ✨",
-                    "A good beginning, watch your love grow! 🌱",
-                    "There's potential here, keep nurturing! 💖",
-                    "Curiosity sparked, what happens next? 🤔",
-                    "An interesting pairing, explore more! 🗺️"
-                ];
-
-                const MID_TIER_QUOTES = [
-                    "Love is definitely in the air for you two! 💘",
-                    "You two are like two peas in a very romantic pod! 🥰",
-                    "Your bond is as comforting as a warm cup on a chilly morning! ☕️❤️", /* Updated quote */
-                    "Your love story is just getting started! 📖💖",
-                    "Together, you create a perfect symphony of affection! 🎶❤️"
-                ];
-
-                const HIGH_TIER_QUOTES = [
-                    "Your hearts sync like WiFi signals! 💖",
-                    "A match made in the stars, or at least a really good algorithm! ✨",
-                    "Looks like destiny just called, and it's for you two! 📞💞",
-                    "Soulmate potential detected! Prepare for magic! ✨💫",
-                    "Warning: May cause excessive hand-holding and moonlit strolls! 🌙"
-                ];
-
-                if (score >= 80) {
-                    return HIGH_TIER_QUOTES[Math.floor(Math.random() * HIGH_TIER_QUOTES.length)];
-                } else if (score >= 40) {
-                    return MID_TIER_QUOTES[Math.floor(Math.random() * MID_TIER_QUOTES.length)];
-                } else {
-                    return LOW_TIER_QUOTES[Math.floor(Math.random() * LOW_TIER_QUOTES.length)];
-                }
+            // Identical Names Edge Case
+            if (cleanName1 === cleanName2) {
+                customQuote = "Soulmate Alert! Your destinies are intertwined! ✨";
+                return { percentage: 100, customQuote: customQuote };
             }
 
-            /**
-             * Calculates the love compatibility percentage between two people based on their names.
-             * @param {string} name1 - The first person's name.
-             * @param {string} name2 - The second person's name.
-             * @returns {{percentage: number, quote: string}} An object containing the calculated percentage and a love quote.
-             */
-            function calculateLove(name1, name2) {
-                const n1Clean = name1.toLowerCase().replace(/\s/g, '');
-                const n2Clean = name2.toLowerCase().replace(/\s/g, '');
-
-                if (n1Clean === '' || n2Clean === '') {
-                    return { percentage: -1, quote: "Please enter both names to find your spark!" };
-                }
-
-                // Easter Egg: GROK and XAI
-                if ((n1Clean === 'grok' && n2Clean === 'xai') || (n1Clean === 'xai' && n2Clean === 'grok')) {
-                    return { percentage: 100, quote: "AI-approved soulmates! 🚀❤️" };
-                }
-
-                // Identical names check
-                if (n1Clean === n2Clean) {
-                    return { percentage: 100, quote: "Soulmate Alert! You've found your perfect match! ❤️‍🔥" };
-                }
-
-                // Concatenate and sum ASCII values
-                const combinedNames = n1Clean + n2Clean;
-                let asciiSum = 0;
-                for (let i = 0; i < combinedNames.length; i++) {
-                    asciiSum += combinedNames.charCodeAt(i);
-                }
-
-                // Base percentage calculation
-                let percentage = asciiSum % 101; // Modulo 101 for 0-100 range
-
-                // Sparkle factor
-                const totalLength = n1Clean.length + n2Clean.length;
-                if (totalLength % 2 === 0) {
-                    percentage += 5; // Add 5% if total length is even
-                } else {
-                    percentage -= 3; // Subtract 3% if total length is odd
-                }
-
-                // Clamp percentage between 0 and 100
-                percentage = Math.max(0, Math.min(100, percentage));
-                percentage = Math.round(percentage); // Round to nearest whole number
-
-                // Generate weighted love quote
-                const quote = _generateWeightedQuote(percentage);
-
-                return { percentage: percentage, quote: quote };
+            const combinedNames = cleanName1 + cleanName2;
+            let asciiSum = 0;
+            for (let i = 0; i < combinedNames.length; i++) {
+                asciiSum += combinedNames.charCodeAt(i);
             }
 
-            /**
-             * Saves a calculation result to the simulated backend.
-             * @param {string} name1 - First person's name.
-             * @param {string} name2 - Second person's name.
-             * @param {number} percentage - Calculated percentage.
-             * @param {string} quote - The love quote.
-             * @returns {Promise<{success: boolean, error?: string}>}
-             */
-            async function saveResult(name1, name2, percentage, quote) {
-                return await LoveMeterAPI.saveCalculation({ name1, name2, percentage, quote });
+            let percentage = asciiSum % 101;
+
+            // Sparkle Factor
+            const totalLength = cleanName1.length + cleanName2.length;
+            if (totalLength % 2 === 0) {
+                percentage += 5;
+            } else {
+                percentage -= 3;
             }
 
-            /**
-             * Fetches recent calculations from the simulated backend.
-             * @returns {Promise<{success: boolean, data?: object[], error?: string}>}
-             */
-            async function fetchRecent() {
-                return await LoveMeterAPI.getRecentCalculations();
-            }
+            // Clamp between 0 and 100
+            percentage = Math.max(0, Math.min(100, percentage));
 
+            return { percentage: percentage, customQuote: null };
+        }
 
-            return {
-                calculateLove: calculateLove,
-                saveResult: saveResult,
-                fetchRecent: fetchRecent
-            };
-        })();
+        function getLoveStatus(percentage) {
+            if (percentage === 100) return "Soulmates! ✨";
+            if (percentage >= 81) return "Eternal Flame! 🔥❤️";
+            if (percentage >= 61) return "Deeply Connected! 💖";
+            if (percentage >= 41) return "Strong Connection! 🔗";
+            if (percentage >= 21) return "Budding Affection! 🌱";
+            return "Just Friends! 🤷‍♀️";
+        }
 
+        function generateLoveQuote() {
+            const randomIndex = Math.floor(Math.random() * loveQuotes.length);
+            return loveQuotes[randomIndex];
+        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const name1Input = document.getElementById('name1');
-            const name2Input = document.getElementById('name2');
-            const calculateBtn = document.getElementById('calculateBtn');
-            const resultsSection = document.getElementById('results');
-            const progressBarFill = document.getElementById('progressBarFill');
-            const percentageText = document.getElementById('percentageText');
-            const loveQuote = document.getElementById('loveQuote');
-            const resetBtn = document.getElementById('resetBtn');
-            const shareBtn = document.getElementById('shareBtn');
-            const recentList = document.getElementById('recentList');
-            const confettiContainer = document.getElementById('confettiContainer');
-            const recentCalculationsSidebar = document.getElementById('recentCalculationsSidebar');
-            const recentLoadingMessage = document.getElementById('recentLoadingMessage');
+        function animateMeterNeedle(percentage) {
+            // Needle rotates from -90deg (0%) to 90deg (100%) for a 180-degree sweep
+            const rotationDegrees = (percentage / 100) * 180 - 90;
+            // Apply rotation relative to its original transform (translateX(-50%))
+            meterNeedle.style.transform = `translateX(-50%) rotate(${rotationDegrees}deg)`;
+        }
 
-            let currentCalculatedPercentage = 0; // To store the last calculated percentage for sharing
-
-            /**
-             * Animates the progress bar fill and updates the percentage text.
-             * @param {number} finalPercentage - The target percentage to animate to.
-             * @returns {Promise<void>} A promise that resolves when the animation is complete.
-             */
-            function animateProgressBar(finalPercentage) {
-                return new Promise(resolve => {
-                    progressBarFill.style.width = '0%';
-                    percentageText.textContent = '0%';
-                    resultsSection.setAttribute('aria-valuenow', '0');
-
-                    let current = 0;
-                    const duration = 1500; // milliseconds
-                    const startTime = performance.now();
-
-                    function update() {
-                        const elapsed = performance.now() - startTime;
-                        const progress = Math.min(elapsed / duration, 1);
-                        current = Math.floor(progress * finalPercentage);
-
-                        progressBarFill.style.width = `${current}%`;
-                        percentageText.textContent = `${current}%`;
-                        resultsSection.setAttribute('aria-valuenow', current.toString());
-
-                        if (progress < 1) {
-                            requestAnimationFrame(update);
-                        } else {
-                            // Ensure it hits the exact final value
-                            progressBarFill.style.width = `${finalPercentage}%`;
-                            percentageText.textContent = `${finalPercentage}%`;
-                            resultsSection.setAttribute('aria-valuenow', finalPercentage.toString());
-                            resolve(); // Resolve the promise when animation is complete
-                        }
-                    }
-                    requestAnimationFrame(update);
-                });
-            }
-
-            /**
-             * Triggers a burst of confetti/emojis for high scores.
-             * @param {number} score - The love score.
-             */
-            function burstConfetti(score) {
-                confettiContainer.innerHTML = ''; // Clear previous confetti
-                if (score > 70) {
-                    const emojis = ['💖', '❤️', '💕', '✨', '💘', '🔥'];
-                    for (let i = 0; i < 30; i++) {
-                        const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-                        const item = document.createElement('div');
-                        item.classList.add('confetti-item');
-                        item.textContent = emoji;
-                        // Position confetti relative to the results section for better visual coherence
-                        const rect = resultsSection.getBoundingClientRect();
-                        item.style.left = `${Math.random() * rect.width}px`;
-                        item.style.top = `${rect.height / 2}px`; // Start from middle
-                        item.style.setProperty('--x', `${(Math.random() - 0.5) * 400}px`);
-                        item.style.setProperty('--y', `${(Math.random() - 0.5) * 400 - 200}px`); /* -200 to make them fly up */
-                        item.style.setProperty('--deg', `${Math.random() * 720}deg`);
-                        confettiContainer.appendChild(item);
-
-                        // Remove after animation to prevent DOM clutter
-                        item.addEventListener('animationend', () => item.remove());
-                    }
-                }
-            }
-
-            /**
-             * Displays the calculation results on the UI.
-             * @param {number} percentage - The calculated love percentage.
-             * @param {string} quote - The romantic quote.
-             */
-            async function displayResults(percentage, quote) {
-                resultsSection.classList.add('hidden'); // Hide temporarily for animation reset
-                // Force reflow to reset transition (modern browsers might optimize this away)
-                void resultsSection.offsetWidth;
-                resultsSection.classList.remove('hidden');
-                resultsSection.classList.add('show');
-
-                await animateProgressBar(percentage); // Wait for the animation to complete
-                loveQuote.textContent = quote;
-                currentCalculatedPercentage = percentage; // Store for sharing
-                burstConfetti(percentage);
-            }
-
-            /**
-             * Resets the application state, clearing inputs and hiding results.
-             */
-            function resetApp() {
-                name1Input.value = '';
-                name2Input.value = '';
-                resultsSection.classList.remove('show');
-                resultsSection.classList.add('hidden');
-                progressBarFill.style.width = '0%'; // Reset for next animation
-                percentageText.textContent = '0%';
-                loveQuote.textContent = '';
-                confettiContainer.innerHTML = ''; // Clear confetti
-            }
-
-            /**
-             * Renders the recent calculations from the simulated backend into the sidebar.
-             */
-            async function renderRecentCalculations() {
-                recentList.innerHTML = ''; // Clear existing list
-                recentLoadingMessage.classList.remove('hidden'); // Show loading message
-
-                try {
-                    const response = await LoveMeterService.fetchRecent();
-                    if (response.success) {
-                        const recent = response.data;
-                        if (recent.length === 0) {
-                            const li = document.createElement('li');
-                            li.textContent = 'No recent calculations. Spark some love!';
-                            recentList.appendChild(li);
-                        } else {
-                            recent.forEach(calc => {
-                                const li = document.createElement('li');
-                                li.innerHTML = `<strong>${calc.name1}</strong> & <strong>${calc.name2}</strong><br>
-                                                Love Score: <span style="color:var(--secondary-red); font-weight:bold;">${calc.percentage}%</span><br>
-                                                <span style="font-size:0.8em; opacity:0.8; font-style: italic;">"${calc.quote}"</span>`;
-                                recentList.appendChild(li);
-                            });
-                        }
-                    } else {
-                        throw new Error(response.error || 'Failed to fetch recent calculations from API.');
-                    }
-                } catch (error) {
-                    console.error("Error rendering recent calculations:", error);
-                    const li = document.createElement('li');
-                    li.textContent = 'Could not load recent sparks. Please try again.';
-                    li.style.color = 'yellow';
-                    recentList.appendChild(li);
-                } finally {
-                    recentLoadingMessage.classList.add('hidden'); // Hide loading message
-                }
-            }
-
-            // Share functionality
-            shareBtn.addEventListener('click', async () => {
-                const shareText = `We got ${currentCalculatedPercentage}% on Love Meter! 💕 My love quote: "${loveQuote.textContent}"`;
-                try {
-                    await navigator.clipboard.writeText(shareText);
-                    alert('Love score copied to clipboard! Share the love! 🥰');
-                } catch (err) {
-                    console.error('Failed to copy text: ', err);
-                    // Fallback for browsers that don't support clipboard API or have permissions issues
-                    const textArea = document.createElement('textarea');
-                    textArea.value = shareText;
-                    textArea.style.position = 'fixed'; // Avoid scrolling to bottom
-                    textArea.style.left = '-9999px';
-                    textArea.style.top = '-9999px';
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        alert('Love score copied to clipboard! Share the love! 🥰');
-                    } catch (ex) {
-                        alert('Oops, couldn\'t copy to clipboard. Please copy manually: ' + shareText);
-                    } finally {
-                        textArea.remove();
-                    }
-                }
-            });
-
-
-            // Event Listeners
-            calculateBtn.addEventListener('click', async () => {
-                const name1 = name1Input.value.trim();
-                const name2 = name2Input.value.trim();
-
-                calculateBtn.disabled = true; // Disable button during calculation
-                calculateBtn.textContent = 'Calculating... ✨';
-
-                const result = LoveMeterService.calculateLove(name1, name2); // Use the service
-
-                if (result.percentage === -1) {
-                    alert(result.quote); // Use quote for error message
-                    calculateBtn.disabled = false;
-                    calculateBtn.innerHTML = 'Calculate Love <span class="emoji">💕</span>';
-                    return;
-                }
-
-                await displayResults(result.percentage, result.quote);
-
-                const saveResponse = await LoveMeterService.saveResult(name1, name2, result.percentage, result.quote);
-                if (!saveResponse.success) {
-                    console.error("Failed to save calculation to backend:", saveResponse.error);
-                    // Optionally alert user or show a small error message
-                }
-                
-                await renderRecentCalculations(); // Update sidebar after saving
-
-                calculateBtn.disabled = false;
-                calculateBtn.innerHTML = 'Calculate Love <span class="emoji">💕</span>';
-            });
-
-            resetBtn.addEventListener('click', resetApp);
-
-            // Floating Hearts Animation
-            const heartEmojis = ['❤️', '🧡', '💛', '💚', '💙', '💜', '💖', '🤍'];
-            const heartColors = ['red', 'pink', 'white'];
-
-            function createFloatingHeart() {
-                const heart = document.createElement('div');
-                heart.classList.add('floating-heart');
-                heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
-                heart.classList.add(heartColors[Math.floor(Math.random() * heartColors.length)]);
-                heart.style.left = `${Math.random() * 100}vw`; // Random horizontal position
-                heart.style.animationDuration = `${Math.random() * 5 + 5}s`; // 5-10s duration
-                heart.style.animationDelay = `${Math.random() * 2}s`; // 0-2s delay
+        function burstHearts(originX, originY) {
+            for (let i = 0; i < 10; i++) {
+                const heart = document.createElement('span');
+                heart.classList.add('burst-heart');
+                heart.innerHTML = '❤️'; // Unicode heart emoji
                 document.body.appendChild(heart);
 
-                // Remove heart after it goes out of view
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 80 + 20; // 20-100px
+                const offsetX = Math.cos(angle) * distance;
+                const offsetY = Math.sin(angle) * distance;
+
+                heart.style.left = `${originX}px`;
+                heart.style.top = `${originY}px`;
+                heart.style.setProperty('--offset-x', `${offsetX}px`);
+                heart.style.setProperty('--offset-y', `${offsetY}px`);
+
                 heart.addEventListener('animationend', () => {
                     heart.remove();
                 });
             }
+        }
 
-            // Create a new heart every 1 second
-            setInterval(createFloatingHeart, 1000);
+        function displayResults(percentage, customQuote) {
+            const status = getLoveStatus(percentage);
+            const quote = customQuote || generateLoveQuote();
 
-            // Initial load
-            renderRecentCalculations();
-            // Show sidebar on desktop by adding a class to sidebar directly
-            if (window.innerWidth >= 768) {
-                recentCalculationsSidebar.classList.add('show-sidebar');
+            resultsSection.style.display = 'block'; // Make sure it's visible for animation
+            setTimeout(() => {
+                resultsSection.classList.add('show');
+            }, 10); // Small delay to trigger CSS transition
+
+            resultPercentageText.textContent = `${percentage}% ${status}`;
+            quoteText.textContent = quote;
+
+            // Reset needle before animating for repeated calculations
+            meterNeedle.style.transform = `translateX(-50%) rotate(-90deg)`;
+            // Force reflow for the transition to re-trigger
+            void meterNeedle.offsetWidth;
+            animateMeterNeedle(percentage);
+
+            if (percentage > 70) {
+                // Get center of the meter pivot for burst origin
+                const pivotRect = meterCenterPivot.getBoundingClientRect();
+                const centerX = pivotRect.left + pivotRect.width / 2;
+                const centerY = pivotRect.top + pivotRect.height / 2;
+                burstHearts(centerX, centerY);
+            }
+        }
+
+        function resetApp() {
+            person1NameInput.value = '';
+            person2NameInput.value = '';
+            resultsSection.classList.remove('show');
+            // Hide the section after animation completes
+            resultsSection.addEventListener('transitionend', function handler() {
+                resultsSection.style.display = 'none';
+                resultsSection.removeEventListener('transitionend', handler);
+            });
+            // Reset needle position
+            meterNeedle.style.transform = `translateX(-50%) rotate(-90deg)`;
+            // Remove any lingering burst hearts
+            document.querySelectorAll('.burst-heart').forEach(heart => heart.remove());
+        }
+
+        function saveHistory(name1, name2, percentage) {
+            let history = JSON.parse(localStorage.getItem('loveMeterHistory')) || [];
+            const newEntry = { name1, name2, percentage, timestamp: new Date().toISOString() };
+            history.unshift(newEntry); // Add to the beginning
+            history = history.slice(0, 3); // Keep only the last 3 entries
+            localStorage.setItem('loveMeterHistory', JSON.stringify(history));
+            loadHistory(); // Refresh display
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('loveMeterHistory')) || [];
+            historyList.innerHTML = ''; // Clear current list
+            if (history.length === 0) {
+                historyList.innerHTML = '<li>No recent calculations.</li>';
+                return;
+            }
+            history.forEach(entry => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<span>${entry.name1} & ${entry.name2}:</span> ${entry.percentage}%`;
+                historyList.appendChild(listItem);
+            });
+        }
+
+        function shareResult(percentage) {
+            const shareText = `We got ${percentage}% on Love Meter! 💕 Spark your own fate!`;
+            navigator.clipboard.writeText(shareText)
+                .then(() => alert('Result copied to clipboard!'))
+                .catch(err => console.error('Failed to copy: ', err));
+        }
+
+        function initFloatingHearts() {
+            const heartsContainer = document.body;
+            setInterval(() => {
+                const heart = document.createElement('span');
+                heart.classList.add('floating-heart');
+                heart.innerHTML = '❤️'; // Unicode heart emoji
+                heart.style.left = `${Math.random() * 100}vw`; // Random horizontal position
+                heart.style.animationDuration = `${Math.random() * 3 + 4}s`; // 4-7s animation duration
+                heart.style.setProperty('--initial-opacity', `${Math.random() * 0.5 + 0.5}`); // 0.5-1 opacity
+                heartsContainer.appendChild(heart);
+
+                // Remove heart after its animation ends
+                heart.addEventListener('animationend', () => {
+                    heart.remove();
+                });
+            }, 500); // Create a new heart every 0.5 seconds
+        }
+
+        // Event Listeners
+        calculateButton.addEventListener('click', () => {
+            const name1 = person1NameInput.value.trim();
+            const name2 = person2NameInput.value.trim();
+
+            if (!name1 || !name2) {
+                alert('Please enter both names!');
+                return;
             }
 
+            const { percentage, customQuote } = calculateLovePercentage(name1, name2);
+            displayResults(percentage, customQuote);
+            saveHistory(name1, name2, percentage);
+        });
+
+        resetButton.addEventListener('click', resetApp);
+        shareButton.addEventListener('click', () => {
+            // Extract percentage from the displayed text, e.g., "87% Eternal Flame! 🔥❤️"
+            const percentageMatch = resultPercentageText.textContent.match(/^(\d+)%/);
+            let currentPercentage = null;
+            if (percentageMatch && percentageMatch[1]) {
+                currentPercentage = parseInt(percentageMatch[1]);
+            }
+
+            if (!isNaN(currentPercentage) && currentPercentage !== null) {
+                shareResult(currentPercentage);
+            } else {
+                alert('Calculate your love first to share!');
+            }
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHistory();
+            initFloatingHearts();
             console.log("Love is in the code! 💻❤️");
         });
     </script>
