@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Love Meter: Spark Your Fate? 💘</title>
+    <title>Love Meter: Spark Your Fate?</title>
     <meta name="description" content="A whimsical love compatibility calculator that gives a fun percentage and a cheesy romantic quote, with a retro Valentine's Day aesthetic.">
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Charm:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -98,6 +98,18 @@
             margin-top: 10px;
             width: 100%;
         }
+        
+        .calculate-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .calculate-btn .heart-icon {
+            width: 1.1em;
+            height: 1.1em;
+        }
 
         .calculate-btn:hover, .reset-btn:hover, .share-btn:hover {
             transform: scale(1.05);
@@ -168,6 +180,21 @@
             border: 5px solid var(--primary-pink); /* Outer border for the gauge */
             z-index: 1; /* Below needle, above nothing */
         }
+        
+        /* START - New Meter Fill Styles */
+        .meter-fill {
+            position: absolute;
+            top: 100%; /* Start below the visible gauge area */
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--secondary-red);
+            transform-origin: 50% 0; /* Pivot from the center of its top edge */
+            transform: rotate(0deg); /* Initial state pointing down */
+            transition: transform 1.5s ease-out;
+            z-index: 0;
+        }
+        /* END - New Meter Fill Styles */
 
         /* Inner track for a more refined look, slightly inset */
         .meter-track-inner {
@@ -178,6 +205,7 @@
             height: calc(100% - 10px); /* Adjust height so it's a semicircle with top padding */
             border-radius: 115px 115px 0 0; /* Smaller radius for inner track */
             background: linear-gradient(to right, #ffffff80, #ffffff20); /* Subtle gradient for the track */
+            z-index: 1;
         }
 
         .meter-center-pivot {
@@ -208,35 +236,64 @@
             z-index: 2;
         }
 
+        /* START - New Meter Labels Styles */
         .meter-labels {
             position: absolute;
-            bottom: 110px; /* Position them around the meter-gauge */
-            width: 100%; /* Relative to love-meter-display */
-            height: 125px; /* Same height as meter-gauge */
+            top: 0;
+            left: 0;
+            width: 100%; /* Same as meter-gauge-container */
+            height: 100%; /* Same as meter-gauge-container */
+            pointer-events: none;
+            z-index: 4;
+            color: var(--neutral-white); /* Changed from var(--secondary-red) to var(--neutral-white) */
             font-size: 0.9em;
             font-weight: bold;
-            color: var(--secondary-red);
-            pointer-events: none;
-            z-index: 4; /* Above meter-gauge elements */
         }
-        .meter-labels span {
+
+        .meter-labels .label-wrapper {
             position: absolute;
-            top: auto;
-            bottom: 0; /* Align to the bottom of the labels container */
-            transform: translateY(50%); /* Adjust to center vertically on the base line */
-        }
-        .meter-labels .label-0 {
-            left: 0;
-            transform: translateX(-50%) translateY(50%); /* Offset for centering */
-        }
-        .meter-labels .label-50 {
+            /* Place the wrapper's pivot at the bottom center of .meter-labels */
             left: 50%;
-            transform: translateX(-50%) translateY(50%);
+            bottom: 0; /* This is the pivot point */
+            width: 1px; /* A thin line for rotation */
+            height: 140px; /* Length of the line for label distance (gauge radius + offset) */
+            transform-origin: 50% 100%; /* Rotate around its own bottom center */
         }
+
+        .meter-labels .label-wrapper span {
+            position: absolute;
+            top: 0; /* Position text at the top of the wrapper line */
+            left: -20px; /* Center text around the line (given 40px width) */
+            width: 40px;
+            text-align: center;
+            transform: rotate(var(--counter-rotation, 0deg)); /* Counter-rotate text */
+            white-space: nowrap;
+            padding-top: 5px; /* Push text slightly out from the line end (upwards) */
+        }
+
+        /* Rotations for wrappers and counter-rotations for text */
+        .meter-labels .label-0 {
+            transform: rotate(-90deg); /* 0% at far left */
+        }
+        .meter-labels .label-0 span {
+            --counter-rotation: 90deg; /* Counter-rotate text to keep it upright */
+        }
+
+        .meter-labels .label-50 {
+            transform: rotate(0deg); /* 50% at top center */
+        }
+        .meter-labels .label-50 span {
+            --counter-rotation: 0deg; /* Text stays upright */
+        }
+
         .meter-labels .label-100 {
-            right: 0;
-            transform: translateX(50%) translateY(50%); /* Offset for centering */
+            transform: rotate(90deg); /* 100% at far right */
         }
+        .meter-labels .label-100 span {
+            --counter-rotation: -90deg; /* Counter-rotate text to keep it upright */
+        }
+        /* END - New Meter Labels Styles */
+
 
         .result-percentage-text {
             position: relative; /* Relative to .love-meter-display */
@@ -266,16 +323,41 @@
             padding: 0 10px;
         }
 
+        /* NEW CSS HEART STYLES */
+        .css-heart {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-45deg);
+            background-color: var(--secondary-red);
+        }
+        .css-heart::before,
+        .css-heart::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: inherit;
+        }
+        .css-heart::before {
+            top: -50%;
+            left: 0;
+        }
+        .css-heart::after {
+            top: 0;
+            left: 50%;
+        }
+
         /* Floating Hearts */
         .floating-heart {
             position: absolute;
-            font-size: 1.5em; /* Small hearts */
-            color: var(--secondary-red);
-            bottom: -20px; /* Start below the screen */
-            animation: floatUp ease-out forwards; /* forwards to keep last state */
-            pointer-events: none; /* Do not interfere with clicks */
-            z-index: 1; /* Below the main container */
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            width: 25px;
+            height: 25px;
+            bottom: -20px;
+            animation: floatUp ease-out forwards;
+            pointer-events: none;
+            z-index: 1;
         }
 
         @keyframes floatUp {
@@ -295,12 +377,15 @@
         /* Burst Hearts for high scores */
         .burst-heart {
             position: absolute;
-            font-size: 2em;
-            color: var(--deep-red);
+            width: 30px;
+            height: 30px;
             animation: burst 1s ease-out forwards;
             pointer-events: none;
             z-index: 100;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .burst-heart .css-heart {
+            background-color: var(--deep-red);
         }
 
         @keyframes burst {
@@ -320,19 +405,21 @@
 
         /* History Section */
         .history-section {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
             text-align: left;
             color: var(--neutral-white);
             font-size: 0.9em;
             background-color: rgba(255, 255, 255, 0.1);
-            padding: 10px 15px;
+            padding: 15px;
             border-radius: 10px;
-            max-width: 180px;
+            max-width: 200px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.5);
+            z-index: 5;
         }
 
         .history-section h3 {
@@ -398,15 +485,16 @@
             .meter-needle {
                 height: 90px;
             }
-            .meter-center-pivot {
-                width: 20px;
-                height: 20px;
-            }
+
+            /* Responsive labels */
             .meter-labels {
+                top: 0; left: 0; width: 100%; height: 100%; /* Overlay gauge container */
                 font-size: 0.8em;
-                bottom: 90px;
-                height: 100px;
             }
+            .meter-labels .label-wrapper {
+                height: calc(100px + 15px); /* Gauge radius (100px) + offset */
+            }
+
             .result-percentage-text {
                 font-size: 2.5em;
                 margin-top: 10px;
@@ -416,41 +504,48 @@
                 font-size: 1.2em;
             }
             .history-section {
-                position: relative;
-                bottom: unset;
-                left: unset;
-                margin-top: 20px;
-                max-width: unset;
-                width: 100%;
+                position: static;
+                transform: none;
+                top: unset;
+                right: unset;
+                width: 90%;
+                max-width: 500px;
+                margin: 20px auto 0 auto;
                 text-align: center;
-                box-sizing: border-box;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="title">Love Meter: Spark Your Fate? 💘</h1>
+        <h1 class="title">Love Meter: Spark Your Fate?</h1>
 
         <div class="input-section">
             <input type="text" id="person1Name" placeholder="Person 1's Name" aria-label="Person 1's Name">
             <input type="text" id="person2Name" placeholder="Person 2's Name" aria-label="Person 2's Name">
-            <button class="calculate-btn" id="calculateButton" aria-label="Calculate Love">Calculate Love 💕</button>
+            <button class="calculate-btn" id="calculateButton" aria-label="Calculate Love">
+                Calculate Love
+                <svg class="heart-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </button>
         </div>
 
         <div class="results-section" id="resultsSection">
             <div class="love-meter-display">
                 <div class="meter-gauge-container">
                     <div class="meter-gauge">
+                        <div class="meter-fill" id="meterFill"></div>
                         <div class="meter-track-inner"></div>
                     </div>
                     <div class="meter-center-pivot" id="meterCenterPivot"></div>
                     <div class="meter-needle" id="meterNeedle"></div>
-                </div>
-                <div class="meter-labels">
-                    <span class="label-0">0%</span>
-                    <span class="label-50">50%</span>
-                    <span class="label-100">100%</span>
+                    <!-- Labels moved inside meter-gauge-container for relative positioning -->
+                    <div class="meter-labels">
+                        <div class="label-wrapper label-0"><span>0%</span></div>
+                        <div class="label-wrapper label-50"><span>50%</span></div>
+                        <div class="label-wrapper label-100"><span>100%</span></div>
+                    </div>
                 </div>
                 <div class="result-percentage-text" id="resultPercentageText"></div>
             </div>
@@ -460,13 +555,13 @@
                 <button class="share-btn" id="shareButton" aria-label="Share your score!">Share your score!</button>
             </div>
         </div>
+    </div>
 
-        <div class="history-section" id="historyContainer">
-            <h3>Recent Sparks ✨</h3>
-            <ul id="historyList">
-                <!-- History items will be inserted here -->
-            </ul>
-        </div>
+    <div class="history-section" id="historyContainer">
+        <h3>Recent Sparks</h3>
+        <ul id="historyList">
+            <!-- History items will be inserted here -->
+        </ul>
     </div>
 
     <script>
@@ -474,10 +569,9 @@
         const person2NameInput = document.getElementById('person2Name');
         const calculateButton = document.getElementById('calculateButton');
         const resultsSection = document.getElementById('resultsSection');
-        // const heartProgressBar = document.getElementById('heartProgressBar'); // Removed
-        // const progressBarFill = document.getElementById('progressBarFill');     // Removed
-        const meterNeedle = document.getElementById('meterNeedle'); // New meter element
-        const meterCenterPivot = document.getElementById('meterCenterPivot'); // For burst hearts origin
+        const meterNeedle = document.getElementById('meterNeedle');
+        const meterFill = document.getElementById('meterFill');
+        const meterCenterPivot = document.getElementById('meterCenterPivot');
         const resultPercentageText = document.getElementById('resultPercentageText');
         const quoteText = document.getElementById('quoteText');
         const resetButton = document.getElementById('resetButton');
@@ -485,16 +579,16 @@
         const historyList = document.getElementById('historyList');
 
         const loveQuotes = [
-            "Your hearts sync like WiFi signals! 💖",
-            "A match made in the stars, or perhaps just a very good algorithm! ✨",
-            "This connection is stronger than our coffee this morning! ☕❤️",
-            "You two are like two peas in a very romantic pod! 🌱💕",
-            "Love is in the air, and it smells like... you two! 🌬️💘",
-            "Together, you're a supernova of affection! 💥",
-            "You're the missing piece in each other's romantic puzzle! 🧩❤️",
-            "Like a perfect duet, your souls sing in harmony! 🎶",
-            "Your love story is just getting its adorable beginning! 📖💖",
-            "Warning: Cuteness overload when you're together! 🥰"
+            "Your hearts sync like WiFi signals!",
+            "A match made in the stars, or perhaps just a very good algorithm!",
+            "This connection is stronger than our coffee this morning!",
+            "You two are like two peas in a very romantic pod!",
+            "Love is in the air, and it smells like... you two!",
+            "Together, you're a supernova of affection!",
+            "You're the missing piece in each other's romantic puzzle!",
+            "Like a perfect duet, your souls sing in harmony!",
+            "Your love story is just getting its adorable beginning!",
+            "Warning: Cuteness overload when you're together!"
         ];
 
         function calculateLovePercentage(name1, name2) {
@@ -505,13 +599,13 @@
 
             // Easter Egg
             if ((cleanName1 === 'grok' && cleanName2 === 'xai') || (cleanName1 === 'xai' && cleanName2 === 'grok')) {
-                customQuote = "AI-approved soulmates! 🚀❤️";
+                customQuote = "AI-approved soulmates!";
                 return { percentage: 100, customQuote: customQuote };
             }
 
             // Identical Names Edge Case
             if (cleanName1 === cleanName2) {
-                customQuote = "Soulmate Alert! Your destinies are intertwined! ✨";
+                customQuote = "Soulmate Alert! Your destinies are intertwined!";
                 return { percentage: 100, customQuote: customQuote };
             }
 
@@ -538,12 +632,12 @@
         }
 
         function getLoveStatus(percentage) {
-            if (percentage === 100) return "Soulmates! ✨";
-            if (percentage >= 81) return "Eternal Flame! 🔥❤️";
-            if (percentage >= 61) return "Deeply Connected! 💖";
-            if (percentage >= 41) return "Strong Connection! 🔗";
-            if (percentage >= 21) return "Budding Affection! 🌱";
-            return "Just Friends! 🤷‍♀️";
+            if (percentage === 100) return "Soulmates!";
+            if (percentage >= 81) return "Eternal Flame!";
+            if (percentage >= 61) return "Deeply Connected!";
+            if (percentage >= 41) return "Strong Connection!";
+            if (percentage >= 21) return "Budding Affection!";
+            return "Just Friends!";
         }
 
         function generateLoveQuote() {
@@ -551,22 +645,22 @@
             return loveQuotes[randomIndex];
         }
 
-        function animateMeterNeedle(percentage) {
-            // Needle rotates from -90deg (0%) to 90deg (100%) for a 180-degree sweep
-            const rotationDegrees = (percentage / 100) * 180 - 90;
-            // Apply rotation relative to its original transform (translateX(-50%))
-            meterNeedle.style.transform = `translateX(-50%) rotate(${rotationDegrees}deg)`;
+        function animateMeter(percentage) {
+            const needleRotation = (percentage / 100) * 180 - 90;
+            const fillRotation = (percentage / 100) * 180;
+            meterNeedle.style.transform = `translateX(-50%) rotate(${needleRotation}deg)`;
+            meterFill.style.transform = `rotate(${fillRotation}deg)`;
         }
 
         function burstHearts(originX, originY) {
             for (let i = 0; i < 10; i++) {
-                const heart = document.createElement('span');
+                const heart = document.createElement('div');
                 heart.classList.add('burst-heart');
-                heart.innerHTML = '❤️'; // Unicode heart emoji
+                heart.innerHTML = '<div class="css-heart"></div>';
                 document.body.appendChild(heart);
 
                 const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * 80 + 20; // 20-100px
+                const distance = Math.random() * 80 + 20;
                 const offsetX = Math.cos(angle) * distance;
                 const offsetY = Math.sin(angle) * distance;
 
@@ -585,22 +679,24 @@
             const status = getLoveStatus(percentage);
             const quote = customQuote || generateLoveQuote();
 
-            resultsSection.style.display = 'block'; // Make sure it's visible for animation
+            resultsSection.style.display = 'block';
             setTimeout(() => {
                 resultsSection.classList.add('show');
-            }, 10); // Small delay to trigger CSS transition
+            }, 10);
 
             resultPercentageText.textContent = `${percentage}% ${status}`;
             quoteText.textContent = quote;
 
-            // Reset needle before animating for repeated calculations
+            // Reset before animating
             meterNeedle.style.transform = `translateX(-50%) rotate(-90deg)`;
-            // Force reflow for the transition to re-trigger
-            void meterNeedle.offsetWidth;
-            animateMeterNeedle(percentage);
+            meterFill.style.transform = `rotate(0deg)`;
+
+            // Force a reflow to ensure the transition plays
+            void meterNeedle.offsetWidth; 
+            
+            animateMeter(percentage);
 
             if (percentage > 70) {
-                // Get center of the meter pivot for burst origin
                 const pivotRect = meterCenterPivot.getBoundingClientRect();
                 const centerX = pivotRect.left + pivotRect.width / 2;
                 const centerY = pivotRect.top + pivotRect.height / 2;
@@ -612,29 +708,27 @@
             person1NameInput.value = '';
             person2NameInput.value = '';
             resultsSection.classList.remove('show');
-            // Hide the section after animation completes
             resultsSection.addEventListener('transitionend', function handler() {
                 resultsSection.style.display = 'none';
                 resultsSection.removeEventListener('transitionend', handler);
             });
-            // Reset needle position
             meterNeedle.style.transform = `translateX(-50%) rotate(-90deg)`;
-            // Remove any lingering burst hearts
+            meterFill.style.transform = 'rotate(0deg)';
             document.querySelectorAll('.burst-heart').forEach(heart => heart.remove());
         }
 
         function saveHistory(name1, name2, percentage) {
             let history = JSON.parse(localStorage.getItem('loveMeterHistory')) || [];
             const newEntry = { name1, name2, percentage, timestamp: new Date().toISOString() };
-            history.unshift(newEntry); // Add to the beginning
-            history = history.slice(0, 3); // Keep only the last 3 entries
+            history.unshift(newEntry);
+            history = history.slice(0, 3);
             localStorage.setItem('loveMeterHistory', JSON.stringify(history));
-            loadHistory(); // Refresh display
+            loadHistory();
         }
 
         function loadHistory() {
             const history = JSON.parse(localStorage.getItem('loveMeterHistory')) || [];
-            historyList.innerHTML = ''; // Clear current list
+            historyList.innerHTML = '';
             if (history.length === 0) {
                 historyList.innerHTML = '<li>No recent calculations.</li>';
                 return;
@@ -647,7 +741,7 @@
         }
 
         function shareResult(percentage) {
-            const shareText = `We got ${percentage}% on Love Meter! 💕 Spark your own fate!`;
+            const shareText = `We got ${percentage}% on the Love Meter! Spark your own fate!`;
             navigator.clipboard.writeText(shareText)
                 .then(() => alert('Result copied to clipboard!'))
                 .catch(err => console.error('Failed to copy: ', err));
@@ -656,22 +750,20 @@
         function initFloatingHearts() {
             const heartsContainer = document.body;
             setInterval(() => {
-                const heart = document.createElement('span');
+                const heart = document.createElement('div');
                 heart.classList.add('floating-heart');
-                heart.innerHTML = '❤️'; // Unicode heart emoji
-                heart.style.left = `${Math.random() * 100}vw`; // Random horizontal position
-                heart.style.animationDuration = `${Math.random() * 3 + 4}s`; // 4-7s animation duration
-                heart.style.setProperty('--initial-opacity', `${Math.random() * 0.5 + 0.5}`); // 0.5-1 opacity
+                heart.innerHTML = '<div class="css-heart"></div>';
+                heart.style.left = `${Math.random() * 100}vw`;
+                heart.style.animationDuration = `${Math.random() * 3 + 4}s`;
+                heart.style.setProperty('--initial-opacity', `${Math.random() * 0.5 + 0.5}`);
                 heartsContainer.appendChild(heart);
 
-                // Remove heart after its animation ends
                 heart.addEventListener('animationend', () => {
                     heart.remove();
                 });
-            }, 500); // Create a new heart every 0.5 seconds
+            }, 500);
         }
 
-        // Event Listeners
         calculateButton.addEventListener('click', () => {
             const name1 = person1NameInput.value.trim();
             const name2 = person2NameInput.value.trim();
@@ -688,7 +780,6 @@
 
         resetButton.addEventListener('click', resetApp);
         shareButton.addEventListener('click', () => {
-            // Extract percentage from the displayed text, e.g., "87% Eternal Flame! 🔥❤️"
             const percentageMatch = resultPercentageText.textContent.match(/^(\d+)%/);
             let currentPercentage = null;
             if (percentageMatch && percentageMatch[1]) {
@@ -702,7 +793,6 @@
             }
         });
 
-        // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
             loadHistory();
             initFloatingHearts();
